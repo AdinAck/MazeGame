@@ -38,7 +38,7 @@ class Player:
     def __init__(self, win, x, y, world, name="UNKNOWN", color=None):
         self.x, self.y = x, y
         self.dx, self.dy = 0, 0
-        self.size = (tileSize//5),(tileSize//5)
+        self.size = [(tileSize//5),(tileSize//5)]
         self.name = name
         if color == None:
             self.color = random.randint(120,255),random.randint(120,255),random.randint(120,255)
@@ -50,10 +50,35 @@ class Player:
         self.label_rect = self.label.get_rect()
 
     def update(self):
-        self.x = int(self.x+self.dx)
-        self.y = int(self.y+self.dy)
+        changeX = 0
+        if self.dx != 0:
+            iterator = self.dx/abs(self.dx)
+            for i in range(int(abs(self.dx))):
+                if Player.checkCollision(self.x+self.size[0]/2-self.size[0]%2+changeX+iterator+self.size[0]*iterator/2, self.y, tileSize, grid) or Player.checkCollision(self.x+self.size[0]/2+changeX+iterator+self.size[0]*iterator/2, self.y+self.size[1], tileSize, grid):
+                    self.dx = 0
+                    break
+                changeX+=iterator
+        changeY = 0
+        if self.dy != 0:
+            iterator = self.dy/abs(self.dy)
+            for i in range(int(abs(self.dy))):
+                if Player.checkCollision(self.x, self.y+self.size[1]/2-self.size[1]%2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid) or Player.checkCollision(self.x+self.size[0], self.y+self.size[1]/2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid):
+                    self.dy = 0
+                    break
+                changeY+=iterator
+        self.x += int(changeX)
+        self.y += int(changeY)
+
+        #self.x = int(self.x+self.dx)
+        #self.y = int(self.y+self.dy)
         win.blit(self.label, (self.x+world.x+(tileSize//10)-self.label_rect.width//2,self.y+world.y-(tileSize//2)-self.label_rect.height//2))
-        self.rect = pg.draw.rect(win,self.color,(self.x+world.x,self.y+world.y,(tileSize//5),(tileSize//5)))
+        self.rect = pg.draw.rect(win,self.color,(self.x+world.x,self.y+world.y,self.size[0],self.size[1]))
+
+    def checkCollision(posX, posY, tileSize, grid):
+        if sum(grid[int(posY//tileSize),int(posX//tileSize)]) == 255*3:
+            return True
+        return False
+
 
 def network():
     global players
@@ -131,28 +156,28 @@ def main():
     # collion detection and tile rendering is limited to collisionDistance and renderDistance respectively.
 
     # collisions
-    for i in range(max(0,p1.x//tileSize-collisionDistance),min(np.size(grid, 1),p1.x//tileSize+collisionDistance+1)):
-        for j in range(max(0,p1.y//tileSize-2),min(np.size(grid, 0),p1.y//tileSize+3)):
-            dx = abs(p1.x-i*tileSize-tileSize//2)
-            dy = abs(p1.y-j*tileSize-tileSize//2)
-            d = (dx**2+dy**2)**(1/2)
-            if sum(grid[j,i]) == 255*3  and d < tileSize:
-                tmp = [p1.x>=i*tileSize+tileSize,p1.x+(tileSize//5)<=i*tileSize,p1.y>=j*tileSize+tileSize,p1.y+(tileSize//5)<=j*tileSize]
-                if sum(tmp) == 1:
-                    side[j,i] = tmp.index(max(tmp))
-                elif sum(tmp) == 0:
-                    if side[j,i] == 0:
-                        p1.x = i*tileSize+tileSize
-                        p1.dx = -p1.dx*wallBounce
-                    elif side[j,i] == 1:
-                        p1.dx = -p1.dx*wallBounce
-                        p1.x = i*tileSize-(tileSize//5)
-                    elif side[j,i] == 2:
-                        p1.dy = -p1.dy*wallBounce
-                        p1.y = j*tileSize+tileSize
-                    elif side[j,i] == 3:
-                        p1.dy = -p1.dy*wallBounce
-                        p1.y = j*tileSize-(tileSize//5)
+    # for i in range(max(0,p1.x//tileSize-collisionDistance),min(np.size(grid, 1),p1.x//tileSize+collisionDistance+1)):
+    #     for j in range(max(0,p1.y//tileSize-2),min(np.size(grid, 0),p1.y//tileSize+3)):
+    #         dx = abs(p1.x-i*tileSize-tileSize//2)
+    #         dy = abs(p1.y-j*tileSize-tileSize//2)
+    #         d = (dx**2+dy**2)**(1/2)
+    #         if sum(grid[j,i]) == 255*3  and d < tileSize:
+    #             tmp = [p1.x>=i*tileSize+tileSize,p1.x+(tileSize//5)<=i*tileSize,p1.y>=j*tileSize+tileSize,p1.y+(tileSize//5)<=j*tileSize]
+    #             if sum(tmp) == 1:
+    #                 side[j,i] = tmp.index(max(tmp))
+    #             elif sum(tmp) == 0:
+    #                 if side[j,i] == 0:
+    #                     p1.x = i*tileSize+tileSize
+    #                     p1.dx = -p1.dx*wallBounce
+    #                 elif side[j,i] == 1:
+    #                     p1.dx = -p1.dx*wallBounce
+    #                     p1.x = i*tileSize-(tileSize//5)
+    #                 elif side[j,i] == 2:
+    #                     p1.dy = -p1.dy*wallBounce
+    #                     p1.y = j*tileSize+tileSize
+    #                 elif side[j,i] == 3:
+    #                     p1.dy = -p1.dy*wallBounce
+    #                     p1.y = j*tileSize-(tileSize//5)
 
     # render tiles
     colors = grid.copy()
@@ -233,7 +258,7 @@ players = [p1]
 
 # connect to server
 print("Joining room...")
-s = Connect('localhost', 8082)
+#s = Connect('localhost', 8082)
 print("Connected!")
 
 # main pygame loop
@@ -256,6 +281,8 @@ while run:
             maxVelocity *= (tileSize/old)
             accel *= (tileSize/old)
             deAccel *= (tileSize/old)
+            p1.size[0] = int(p1.size[0]*(tileSize/old))
+            p1.size[1] = int(p1.size[1]*(tileSize/old))
 
     keys = pg.key.get_pressed()
 
