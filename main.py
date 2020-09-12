@@ -257,7 +257,7 @@ colors = grid.copy()
 side = np.zeros((np.size(grid,0), np.size(grid, 1)))
 
 # create player
-user = "Adin"
+user = "Tim"
 p1 = Player(win, np.size(grid,0)*tileSize//2, np.size(grid, 1)*tileSize//2, world, user)
 players = [p1]
 

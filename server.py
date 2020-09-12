@@ -1,6 +1,6 @@
-import socket
 import threading
-import time
+import socket
+import select
 
 class Player:
     def __init__(self, sock, addr, name="UNKNOWN"):
@@ -12,90 +12,83 @@ class Server:
     def __init__(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.bind(('', 8082))
-        self.s.listen(5)
-        self.s.setblocking(False)
+        self.s.listen()
 
         self.players = []
 
-        t1 = threading.Thread(target=self.waitForConnection)
-        t1.start()
-
         while True:
-            self.distribute()
+            clientsocket, address = self.s.accept()
+            print(f"[INFO] Connection from {address} has been established.")
+            self.players.append(Player(clientsocket, address))
+            threading.Thread(target=self.client, args=[self.players[-1]]).start()
 
-    def waitForConnection(self):
+    def sendCoords(self, player):
+        for p in [i for i in self.players if i != player and i.name != "UNKNOWN"]:
+            msg = str(p.name)+","+str(p.x)+","+str(p.y)+","+str(p.dx)+","+str(p.dy)
+            player.sock.send(bytearray([2, len(msg)]))
+            player.sock.send(msg.encode())
+            # print(f"sent {msg.encode()} to {player.name}")
+
+    def recvCoords(self, player, data):
+        stuff = data.split(",")
+        player.x, player.y = stuff[1], stuff[2]
+        player.dx, player.dy = stuff[3], stuff[4]
+
+    def initialize(self, player, data):
+        if player.name == "UNKNOWN":
+            stuff = data.split(",")
+            # if stuff[0] in [i.name for i in self.players]:
+            #     print(f"[WARN] {player.addr} username already taken.")
+            #     player.sock.send(bytearray([6]))
+            #     continue
+            player.name = stuff[0]
+            player.color = int(stuff[1]),int(stuff[2]),int(stuff[3])
+            print(f"[INFO] {player.addr} initialized. Name is {player.name}, color is {player.color}")
+            for p in [i for i in self.players if i != player]:
+                msg = p.name+","+str(p.color[0])+","+str(p.color[1])+","+str(p.color[2])
+                player.sock.send(bytearray([1, len(msg)]))
+                player.sock.send(msg.encode())
+                print(f"told {player.name} that {p.name} exists")
+                msg = player.name+","+str(player.color[0])+","+str(player.color[1])+","+str(player.color[2])
+                p.sock.send(bytearray([1, len(msg)]))
+                p.sock.send(msg.encode())
+                print(f"told {p.name} that {player.name} exists")
+
+    def client(self, player):
         while True:
-            try:
-                # now our endpoint knows about the OTHER endpoint.
-                clientsocket, address = self.s.accept()
-                print(f"[INFO] Connection from {address} has been established.")
-                self.players.append(Player(clientsocket, address))
-            except ConnectionResetError:
-                print(f"[INFO] {address} has left.")
-                for player in self.players:
-                    if player.addr == address:
-                        self.players.remove(player)
-            except BlockingIOError:
-                pass
-
-    def distribute(self):
-        for player in self.players:
             try:
                 command = int.from_bytes(player.sock.recv(1), "little")
                 if command == 0:
-                    for p in [i for i in self.players if i != player and i.name != "UNKNOWN"]:
-                        msg = str(p.name)+","+str(p.x)+","+str(p.y)+","+str(p.dx)+","+str(p.dy)
-                        player.sock.send(bytearray([2, len(msg)]))
-                        player.sock.send(msg.encode())
-                        # print(f"sent {msg.encode()} to {player.name}")
+                    threading.Thread(target=self.sendCoords, args=[player]).start()
                     continue
                 header = int.from_bytes(player.sock.recv(1), "little")
                 data = player.sock.recv(header).decode()
                 if command == 4:
-                    if player.name == "UNKNOWN":
-                        stuff = data.split(",")
-                        # if stuff[0] in [i.name for i in self.players]:
-                        #     print(f"[WARN] {player.addr} username already taken.")
-                        #     player.sock.send(bytearray([6]))
-                        #     continue
-                        player.name = stuff[0]
-                        player.color = int(stuff[1]),int(stuff[2]),int(stuff[3])
-                        # for _ in range(20):
-                        #     player.sock.send(bytearray([4]))
-                        print(f"[INFO] {player.addr} initialized. Name is {player.name}, color is {player.color}")
-                        for _ in range(200):
-                            for p in [i for i in self.players if i != player]:
-                                msg = player.name+","+str(player.color[0])+","+str(player.color[1])+","+str(player.color[2])
-                                p.sock.send(bytearray([1, len(msg)]))
-                                p.sock.send(msg.encode())
-                                msg = p.name+","+str(p.color[0])+","+str(p.color[1])+","+str(p.color[2])
-                                player.sock.send(bytearray([1, len(msg)]))
-                                player.sock.send(msg.encode())
-
+                    threading.Thread(target=self.initialize, args=[player, data]).start()
                 elif command == 2: # player sends coordinates
-                    stuff = data.split(",")
-                    player.x, player.y = stuff[1], stuff[2]
-                    player.dx, player.dy = stuff[3], stuff[4]
+                    threading.Thread(target=self.recvCoords, args=[player, data]).start()
             except ConnectionResetError:
-                self.inform(player)
+                threading.Thread(target=self.inform, args=[player]).start()
+                return
             except IndexError:
                 print(f"[WARN] Received bad packets from {player.name}.")
-            except BlockingIOError:
-                pass
             except Exception as e:
                 print(f"[ERR] [{player.addr}] {e}")
                 self.players.remove(player)
+                return
 
     def inform(self, player):
-        print(f"[INFO] {player.name} has left.")
-        self.players.remove(player)
-        for p in [i for i in self.players if i != player]:
-            try:
-                p.sock.send(bytearray([3, len(player.name)]))
-                p.sock.send(player.name.encode())
-            except ConnectionResetError:
-                self.inform(p)
+        try:
+            self.players.remove(player)
+            print(f"[INFO] {player.name} has left.")
+            for p in [i for i in self.players if i != player]:
+                try:
+                    p.sock.send(bytearray([3, len(player.name)]))
+                    p.sock.send(player.name.encode())
+                except ConnectionResetError:
+                    self.inform(p)
+        except ValueError:
+            return
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     Server()
