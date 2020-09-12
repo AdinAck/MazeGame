@@ -218,7 +218,7 @@ colors = grid.copy()
 side = np.zeros((np.size(grid,0), np.size(grid, 1)))
 
 # create player
-user = "Garrett"
+user = "Niall"
 p1 = Player(win, np.size(grid,0)*tileSize//2, np.size(grid, 1)*tileSize//2, world, user)
 players = [p1]
 
@@ -257,8 +257,8 @@ while run:
     keys = pg.key.get_pressed()
 
     main()
-<<<<<<< HEAD
-=======
+# <<<<<<< HEAD
+# =======
     # network()
     s.send(bytearray([0]))
     try:
@@ -295,6 +295,6 @@ while run:
     msg = str(p1.name)+","+str(int(p1.x*(50/tileSize)))+","+str(int(p1.y*(50/tileSize)))+","+str(int(p1.dx*(50/tileSize)))+","+str(int(p1.dy*(50/tileSize)))
     s.send(bytearray([2, len(msg)]))
     s.send(msg.encode())
->>>>>>> 2cafdd8c11fa359ba47003133bb52e61c93e5142
+# >>>>>>> 2cafdd8c11fa359ba47003133bb52e61c93e5142
 
 pg.quit()
