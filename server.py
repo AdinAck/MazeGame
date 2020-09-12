@@ -48,11 +48,11 @@ class Server:
                 msg = p.name+","+str(p.color[0])+","+str(p.color[1])+","+str(p.color[2])
                 player.sock.send(bytearray([1, len(msg)]))
                 player.sock.send(msg.encode())
-                print(f"told {player.name} that {p.name} exists")
+                # print(f"told {player.name} that {p.name} exists")
                 msg = player.name+","+str(player.color[0])+","+str(player.color[1])+","+str(player.color[2])
                 p.sock.send(bytearray([1, len(msg)]))
                 p.sock.send(msg.encode())
-                print(f"told {p.name} that {player.name} exists")
+                # print(f"told {p.name} that {player.name} exists")
 
     def client(self, player):
         while True:

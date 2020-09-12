@@ -278,11 +278,12 @@ print("Joining room...")
 s = Connect('adin.christianminecraftserver.net', 8082)
 print("Connected!")
 
+# tell server the username and color
 msg = f"{user},{p1.color[0]},{p1.color[1]},{p1.color[2]}"
-for _ in range(1):
-    s.send(bytearray([4, len(msg)]))
-    s.send(msg.encode())
+s.send(bytearray([4, len(msg)]))
+s.send(msg.encode())
 
+# start data reception from server thread
 threading.Thread(target=network).start()
 
 # main pygame loop
@@ -307,6 +308,7 @@ while run:
 
     keys = pg.key.get_pressed()
 
+    # in game
     main()
 
     # send position
