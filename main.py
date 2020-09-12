@@ -38,7 +38,7 @@ class Player:
     def __init__(self, win, x, y, world, name="UNKNOWN", color=None):
         self.x, self.y = x, y
         self.dx, self.dy = 0, 0
-        self.size = (tileSize//5),(tileSize//5)
+        self.size = [(tileSize//5),(tileSize//5)]
         self.name = name
         if color == None:
             self.color = random.randint(120,255),random.randint(120,255),random.randint(120,255)
@@ -54,7 +54,7 @@ class Player:
         if self.dx != 0:
             iterator = self.dx/abs(self.dx)
             for i in range(int(abs(self.dx))):
-                if Player.checkCollision(self.x+self.size[0]/2+changeX+iterator+self.size[0]*iterator/2, self.y, tileSize, grid) or Player.checkCollision(self.x+self.size[0]/2+changeX+iterator+self.size[0]*iterator/2, self.y+self.size[1], tileSize, grid):
+                if Player.checkCollision(self.x+self.size[0]/2-self.size[0]%2+changeX+iterator+self.size[0]*iterator/2, self.y, tileSize, grid) or Player.checkCollision(self.x+self.size[0]/2+changeX+iterator+self.size[0]*iterator/2, self.y+self.size[1], tileSize, grid):
                     self.dx = 0
                     break
                 changeX+=iterator
@@ -62,7 +62,7 @@ class Player:
         if self.dy != 0:
             iterator = self.dy/abs(self.dy)
             for i in range(int(abs(self.dy))):
-                if Player.checkCollision(self.x, self.y+self.size[1]/2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid) or Player.checkCollision(self.x+self.size[0], self.y+self.size[1]/2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid):
+                if Player.checkCollision(self.x, self.y+self.size[1]/2-self.size[1]%2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid) or Player.checkCollision(self.x+self.size[0], self.y+self.size[1]/2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid):
                     self.dy = 0
                     break
                 changeY+=iterator
@@ -72,7 +72,7 @@ class Player:
         #self.x = int(self.x+self.dx)
         #self.y = int(self.y+self.dy)
         win.blit(self.label, (self.x+world.x+(tileSize//10)-self.label_rect.width//2,self.y+world.y-(tileSize//2)-self.label_rect.height//2))
-        self.rect = pg.draw.rect(win,self.color,(self.x+world.x,self.y+world.y,(tileSize//5),(tileSize//5)))
+        self.rect = pg.draw.rect(win,self.color,(self.x+world.x,self.y+world.y,self.size[0],self.size[1]))
 
     def checkCollision(posX, posY, tileSize, grid):
         if sum(grid[int(posY//tileSize),int(posX//tileSize)]) == 255*3:
@@ -281,6 +281,8 @@ while run:
             maxVelocity *= (tileSize/old)
             accel *= (tileSize/old)
             deAccel *= (tileSize/old)
+            p1.size[0] = int(p1.size[0]*(tileSize/old))
+            p1.size[1] = int(p1.size[1]*(tileSize/old))
 
     keys = pg.key.get_pressed()
 
