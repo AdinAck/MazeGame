@@ -218,7 +218,7 @@ colors = grid.copy()
 side = np.zeros((np.size(grid,0), np.size(grid, 1)))
 
 # create player
-user = "Garrett"
+user = "Adin"
 p1 = Player(win, np.size(grid,0)*tileSize//2, np.size(grid, 1)*tileSize//2, world, user)
 players = [p1]
 
@@ -228,7 +228,7 @@ s = Connect('adin.christianminecraftserver.net', 8082)
 print("Connected!")
 
 msg = f"{user},{p1.color[0]},{p1.color[1]},{p1.color[2]}"
-for _ in range(20):
+for _ in range(200):
     s.send(bytearray([4, len(msg)]))
     s.send(msg.encode())
 
@@ -258,8 +258,7 @@ while run:
     keys = pg.key.get_pressed()
 
     main()
-<<<<<<< HEAD
-=======
+
     # network()
     s.send(bytearray([0]))
     try:
@@ -296,6 +295,5 @@ while run:
     msg = str(p1.name)+","+str(int(p1.x*(50/tileSize)))+","+str(int(p1.y*(50/tileSize)))+","+str(int(p1.dx*(50/tileSize)))+","+str(int(p1.dy*(50/tileSize)))
     s.send(bytearray([2, len(msg)]))
     s.send(msg.encode())
->>>>>>> 2cafdd8c11fa359ba47003133bb52e61c93e5142
 
 pg.quit()

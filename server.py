@@ -53,6 +53,7 @@ class Server:
                 if command == 4:
                     if player.name == "UNKNOWN":
                         stuff = data.split(",")
+                        print(stuff)
                         # if stuff[0] in [i.name for i in self.players]:
                         #     print(f"[WARN] {player.addr} username already taken.")
                         #     player.sock.send(bytearray([6]))
