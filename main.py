@@ -258,7 +258,7 @@ players = [p1]
 
 # connect to server
 print("Joining room...")
-#s = Connect('localhost', 8082)
+s = Connect('localhost', 8082)
 print("Connected!")
 
 # main pygame loop
@@ -287,5 +287,6 @@ while run:
     keys = pg.key.get_pressed()
 
     main()
+    network()
 
 pg.quit()
