@@ -228,7 +228,7 @@ s = Connect('adin.christianminecraftserver.net', 8082)
 print("Connected!")
 
 msg = f"{user},{p1.color[0]},{p1.color[1]},{p1.color[2]}"
-for _ in range(20):
+for _ in range(200):
     s.send(bytearray([4, len(msg)]))
     s.send(msg.encode())
 
