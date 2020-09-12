@@ -222,7 +222,7 @@ colors = grid.copy()
 side = np.zeros((np.size(grid,0), np.size(grid, 1)))
 
 # create player
-user = "Niall"
+user = "Adin"
 p1 = Player(win, np.size(grid,0)*tileSize//2, np.size(grid, 1)*tileSize//2, world, user)
 players = [p1]
 
@@ -278,8 +278,9 @@ while run:
 
             if command == 1:
                 stuff = data.split(",")
-                print(f"{stuff[0]} now exists")
-                players.append(Player(win, int(np.size(grid,1)//2*(tileSize/50)), int(np.size(grid,0)//2*(tileSize/50)), world, stuff[0], (int(stuff[1]), int(stuff[2]), int(stuff[3]))))
+                if stuff[0] not in [i.name for i in players]:
+                    print(f"{stuff[0]} now exists")
+                    players.append(Player(win, int(np.size(grid,1)//2*(tileSize/50)), int(np.size(grid,0)//2*(tileSize/50)), world, stuff[0], (int(stuff[1]), int(stuff[2]), int(stuff[3]))))
             elif command == 2:
                 stuff = data.split(",")
                 for player in players:

@@ -62,13 +62,14 @@ class Server:
                         # for _ in range(20):
                         #     player.sock.send(bytearray([4]))
                         print(f"[INFO] {player.addr} initialized. Name is {player.name}, color is {player.color}")
-                        for p in [i for i in self.players if i != player]:
-                            msg = player.name+","+str(player.color[0])+","+str(player.color[1])+","+str(player.color[2])
-                            p.sock.send(bytearray([1, len(msg)]))
-                            p.sock.send(msg.encode())
-                            msg = p.name+","+str(p.color[0])+","+str(p.color[1])+","+str(p.color[2])
-                            player.sock.send(bytearray([1, len(msg)]))
-                            player.sock.send(msg.encode())
+                        for _ in range(200):
+                            for p in [i for i in self.players if i != player]:
+                                msg = player.name+","+str(player.color[0])+","+str(player.color[1])+","+str(player.color[2])
+                                p.sock.send(bytearray([1, len(msg)]))
+                                p.sock.send(msg.encode())
+                                msg = p.name+","+str(p.color[0])+","+str(p.color[1])+","+str(p.color[2])
+                                player.sock.send(bytearray([1, len(msg)]))
+                                player.sock.send(msg.encode())
 
                 elif command == 2: # player sends coordinates
                     stuff = data.split(",")
