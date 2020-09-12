@@ -53,15 +53,14 @@ class Server:
                 if command == 4:
                     if player.name == "UNKNOWN":
                         stuff = data.split(",")
-                        print(stuff)
                         # if stuff[0] in [i.name for i in self.players]:
                         #     print(f"[WARN] {player.addr} username already taken.")
                         #     player.sock.send(bytearray([6]))
                         #     continue
                         player.name = stuff[0]
                         player.color = int(stuff[1]),int(stuff[2]),int(stuff[3])
-                        for _ in range(20):
-                            player.sock.send(bytearray([4]))
+                        # for _ in range(20):
+                        #     player.sock.send(bytearray([4]))
                         print(f"[INFO] {player.addr} initialized. Name is {player.name}, color is {player.color}")
                         for p in [i for i in self.players if i != player]:
                             msg = player.name+","+str(player.color[0])+","+str(player.color[1])+","+str(player.color[2])

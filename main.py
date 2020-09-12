@@ -50,24 +50,28 @@ class Player:
         self.label_rect = self.label.get_rect()
 
     def update(self):
-        changeX = 0
-        if self.dx != 0:
-            iterator = self.dx/abs(self.dx)
-            for i in range(int(abs(self.dx))):
-                if Player.checkCollision(self.x+self.size[0]/2-self.size[0]%2+changeX+iterator+self.size[0]*iterator/2, self.y, tileSize, grid) or Player.checkCollision(self.x+self.size[0]/2+changeX+iterator+self.size[0]*iterator/2, self.y+self.size[1], tileSize, grid):
-                    self.dx = 0
-                    break
-                changeX+=iterator
-        changeY = 0
-        if self.dy != 0:
-            iterator = self.dy/abs(self.dy)
-            for i in range(int(abs(self.dy))):
-                if Player.checkCollision(self.x, self.y+self.size[1]/2-self.size[1]%2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid) or Player.checkCollision(self.x+self.size[0], self.y+self.size[1]/2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid):
-                    self.dy = 0
-                    break
-                changeY+=iterator
-        self.x += int(changeX)
-        self.y += int(changeY)
+        if self.name == user:
+            changeX = 0
+            if self.dx != 0:
+                iterator = self.dx/abs(self.dx)
+                for i in range(int(abs(self.dx))):
+                    if Player.checkCollision(self.x+self.size[0]/2-self.size[0]%2+changeX+iterator+self.size[0]*iterator/2, self.y, tileSize, grid) or Player.checkCollision(self.x+self.size[0]/2+changeX+iterator+self.size[0]*iterator/2, self.y+self.size[1], tileSize, grid):
+                        self.dx = 0
+                        break
+                    changeX+=iterator
+            changeY = 0
+            if self.dy != 0:
+                iterator = self.dy/abs(self.dy)
+                for i in range(int(abs(self.dy))):
+                    if Player.checkCollision(self.x, self.y+self.size[1]/2-self.size[1]%2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid) or Player.checkCollision(self.x+self.size[0], self.y+self.size[1]/2+changeY+iterator+self.size[1]*iterator/2, tileSize, grid):
+                        self.dy = 0
+                        break
+                    changeY+=iterator
+            self.x += int(changeX)
+            self.y += int(changeY)
+        else:
+            self.x += int(self.dx)
+            self.y += int(self.dy)
 
         #self.x = int(self.x+self.dx)
         #self.y = int(self.y+self.dy)
