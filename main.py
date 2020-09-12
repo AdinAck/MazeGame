@@ -87,41 +87,7 @@ def network():
     global world
     global win
     global s
-    s.send(bytearray([0]))
-    try:
-        # test = s.receive(2048)
-        # print(test)
-        for i in range(len(players)):
-            command = int.from_bytes(s.receive(1), "little")
-            if command == 4:
-                continue
-            header = int.from_bytes(s.receive(1), "little")
-            data = s.receive(header).decode()
 
-            if command == 1:
-                stuff = data.split(",")
-                print(f"{stuff[0]} now exists")
-                players.append(Player(win, int(np.size(grid,1)//2*(tileSize/50)), int(np.size(grid,0)//2*(tileSize/50)), world, stuff[0], (int(stuff[1]), int(stuff[2]), int(stuff[3]))))
-            elif command == 2:
-                stuff = data.split(",")
-                for player in players:
-                    if player.name == stuff[0]:
-                        # player.x, player.y = int(stuff[1]), int(stuff[2])
-                        player.dx, player.dy = float(stuff[3])*.75*(tileSize/50), float(stuff[4])*.75*(tileSize/50)
-                        player.dx += (int(stuff[1])*(tileSize/50)-int(player.x))/2
-                        player.dy += (int(stuff[2])*(tileSize/50)-int(player.y))/2
-            elif command == 3:
-                players = [i for i in players if i.name != data]
-                print(f"{data} left the room :(")
-        # while True:
-        #     print(s.receive(2048))
-    except BlockingIOError:
-        pass
-
-
-    msg = str(p1.name)+","+str(int(p1.x*(50/tileSize)))+","+str(int(p1.y*(50/tileSize)))+","+str(int(p1.dx*(50/tileSize)))+","+str(int(p1.dy*(50/tileSize)))
-    s.send(bytearray([2, len(msg)]))
-    s.send(msg.encode())
 
 def main():
     win.fill((0,0,0))
@@ -261,6 +227,10 @@ print("Joining room...")
 s = Connect('localhost', 8082)
 print("Connected!")
 
+msg = f"{user},{p1.color[0]},{p1.color[1]},{p1.color[2]}"
+s.send(bytearray([4, len(msg)]))
+s.send(msg.encode())
+
 # main pygame loop
 clock = pg.time.Clock()
 run = True
@@ -287,6 +257,41 @@ while run:
     keys = pg.key.get_pressed()
 
     main()
-    network()
+    # network()
+    s.send(bytearray([0]))
+    try:
+        # test = s.receive(2048)
+        # print(test)
+        for i in range(len(players)):
+            command = int.from_bytes(s.receive(1), "little")
+            if command == 4:
+                continue
+            header = int.from_bytes(s.receive(1), "little")
+            data = s.receive(header).decode()
+
+            if command == 1:
+                stuff = data.split(",")
+                print(f"{stuff[0]} now exists")
+                players.append(Player(win, int(np.size(grid,1)//2*(tileSize/50)), int(np.size(grid,0)//2*(tileSize/50)), world, stuff[0], (int(stuff[1]), int(stuff[2]), int(stuff[3]))))
+            elif command == 2:
+                stuff = data.split(",")
+                for player in players:
+                    if player.name == stuff[0]:
+                        # player.x, player.y = int(stuff[1]), int(stuff[2])
+                        player.dx, player.dy = float(stuff[3])*.75*(tileSize/50), float(stuff[4])*.75*(tileSize/50)
+                        player.dx += (int(stuff[1])*(tileSize/50)-int(player.x))/2
+                        player.dy += (int(stuff[2])*(tileSize/50)-int(player.y))/2
+            elif command == 3:
+                players = [i for i in players if i.name != data]
+                print(f"{data} left the room :(")
+        # while True:
+        #     print(s.receive(2048))
+    except BlockingIOError:
+        pass
+
+
+    msg = str(p1.name)+","+str(int(p1.x*(50/tileSize)))+","+str(int(p1.y*(50/tileSize)))+","+str(int(p1.dx*(50/tileSize)))+","+str(int(p1.dy*(50/tileSize)))
+    s.send(bytearray([2, len(msg)]))
+    s.send(msg.encode())
 
 pg.quit()
