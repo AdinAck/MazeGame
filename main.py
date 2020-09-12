@@ -232,6 +232,8 @@ collisionDistance = 2
 lightSpread = 20
 lightIntensity = .02
 
+doSocket = True
+
 # generate luminocity matte
 luminocity = np.zeros((10,10,renderDistance,renderDistance,3))
 for x in range(10):
@@ -300,10 +302,19 @@ while run:
     keys = pg.key.get_pressed()
 
     main()
-    s.send(bytearray([0]))
-    msg = str(p1.name)+","+str(int(p1.x*(50/tileSize)))+","+str(int(p1.y*(50/tileSize)))+","+str(int(p1.dx*(50/tileSize)))+","+str(int(p1.dy*(50/tileSize)))
-    s.send(bytearray([2, len(msg)]))
-    s.send(msg.encode())
+
+    # send position
+    if doSocket:
+        try:
+            s.send(bytearray([0]))
+            msg = str(p1.name)+","+str(int(p1.x*(50/tileSize)))+","+str(int(p1.y*(50/tileSize)))+","+str(int(p1.dx*(50/tileSize)))+","+str(int(p1.dy*(50/tileSize)))
+            s.send(bytearray([2, len(msg)]))
+            s.send(msg.encode())
+        except ConnectionResetError as e:
+            print(f"[ERR] {e}")
+            print("Closing socket.")
+            s.s.close()
+            doSocket = False
     # print(f"sent {msg}")
 
 pg.quit()

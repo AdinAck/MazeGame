@@ -81,6 +81,7 @@ class Server:
         try:
             self.players.remove(player)
             print(f"[INFO] {player.name} has left.")
+            player.sock.close()
             for p in [i for i in self.players if i != player]:
                 try:
                     p.sock.send(bytearray([3, len(player.name)]))
