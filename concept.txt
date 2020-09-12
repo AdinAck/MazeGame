@@ -1,0 +1,24 @@
+some special people can see where the exit is
+once everyone is at the end, the last person there is booted
+everyone else has the option to vote for someone that they think has the special end seeing ability
+once N people are left, if only normal people are at the end, normal people win, if any special people are at the end, they win
+
+normal people:
+if you are dead, you can suggest who to vote out, but it does not count
+if your suggested person is voted out and is a special person, you are back in
+
+special people:
+if you are dead, you can suggest who to vote out, but it does not count
+if your suggested person is voted out and is a normal person, you are back in
+
+normal people traits:
+ - n vision bursts
+
+special people traits:
+ - full vision
+ - use power
+
+special powers:
+ - create blockade
+ - slow bomb (only seen with vision burst)
+ - smoke bomb (makes vision very low)
