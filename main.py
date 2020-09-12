@@ -50,6 +50,16 @@ class Player:
         self.label = self.f.render(self.name, True, self.color)
         self.label_rect = self.label.get_rect()
 
+    def newScreenSize(self):
+        self.f = pg.font.SysFont("Arial", tileSize//2)
+        self.label = self.f.render(self.name, True, self.color)
+        self.label_rect = self.label.get_rect()
+
+        self.x = int(self.x*(tileSize/old))
+        self.y = int(self.y*(tileSize/old))
+        self.size[0] = int(self.size[0]*(tileSize/old))
+        self.size[1] = int(self.size[1]*(tileSize/old))
+
     def update(self):
         if self.name == user:
             changeX = 0
@@ -259,7 +269,7 @@ colors = grid.copy()
 side = np.zeros((np.size(grid,0), np.size(grid, 1)))
 
 # create player
-user = "Tim"
+user = "Adin"
 p1 = Player(win, np.size(grid,0)*tileSize//2, np.size(grid, 1)*tileSize//2, world, user)
 players = [p1]
 
@@ -289,15 +299,11 @@ while run:
             tileSize = event.w//25
             if tileSize % 10:
                 tileSize -= tileSize % 10
-            for player in players:
-                player.x = int(player.x*(tileSize/old))
-                player.y = int(player.y*(tileSize/old))
             maxVelocity *= (tileSize/old)
             accel *= (tileSize/old)
             deAccel *= (tileSize/old)
             for player in players:
-                player.size[0] = int(player.size[0]*(tileSize/old))
-                player.size[1] = int(player.size[1]*(tileSize/old))
+                player.newScreenSize()
 
     keys = pg.key.get_pressed()
 
