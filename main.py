@@ -228,8 +228,9 @@ s = Connect('localhost', 8082)
 print("Connected!")
 
 msg = f"{user},{p1.color[0]},{p1.color[1]},{p1.color[2]}"
-s.send(bytearray([4, len(msg)]))
-s.send(msg.encode())
+for _ in range(20):
+    s.send(bytearray([4, len(msg)]))
+    s.send(msg.encode())
 
 # main pygame loop
 clock = pg.time.Clock()
