@@ -1,4 +1,5 @@
 import pygame as pg
+import threading
 import socket
 import random
 from PIL import Image
@@ -8,7 +9,7 @@ class Connect:
     def __init__(self, ip, port):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((ip, port))
-        self.s.setblocking(False)
+        # self.s.setblocking(False)
         # self.ready, _, _ = select.select([self.s] , [], [])
 
     def send(self, msg):
@@ -92,6 +93,40 @@ def network():
     global win
     global s
 
+    while True:
+        try:
+            # test = s.receive(2048)
+            # print(test)
+            for _ in range(len(players)):
+                command = int.from_bytes(s.receive(1), "little")
+                if command == 4:
+                    continue
+                header = int.from_bytes(s.receive(1), "little")
+                data = s.receive(header).decode()
+
+                if command == 1:
+                    stuff = data.split(",")
+                    if stuff[0] not in [i.name for i in players]:
+                        print(f"{stuff[0]} now exists")
+                        players.append(Player(win, int(np.size(grid,1)//2*(tileSize/50)), int(np.size(grid,0)//2*(tileSize/50)), world, stuff[0], (int(stuff[1]), int(stuff[2]), int(stuff[3]))))
+                elif command == 2:
+                    stuff = data.split(",")
+                    for player in players:
+                        if player.name == stuff[0]:
+                            # print(f"{player.name} to {int(int(stuff[1])*(tileSize/50)), int(int(stuff[2])*(tileSize/50))}")
+                            # player.x, player.y = int(int(stuff[1])*(tileSize/50)), int(int(stuff[2])*(tileSize/50))
+                            player.dx, player.dy = float(stuff[3])*.75*(tileSize/50), float(stuff[4])*.75*(tileSize/50)
+                            player.dx += (int(stuff[1])*(tileSize/50)-int(player.x))/2
+                            player.dy += (int(stuff[2])*(tileSize/50)-int(player.y))/2
+                elif command == 3:
+                    players = [i for i in players if i.name != data]
+                    print(f"{data} left the room :(")
+            # while True:
+            #     print(s.receive(2048))
+
+        except Exception as e:
+            print(f"[ERR] {e}")
+            return
 
 def main():
     win.fill((0,0,0))
@@ -232,9 +267,11 @@ s = Connect('adin.christianminecraftserver.net', 8082)
 print("Connected!")
 
 msg = f"{user},{p1.color[0]},{p1.color[1]},{p1.color[2]}"
-for _ in range(200):
+for _ in range(1):
     s.send(bytearray([4, len(msg)]))
     s.send(msg.encode())
+
+threading.Thread(target=network).start()
 
 # main pygame loop
 clock = pg.time.Clock()
@@ -256,51 +293,17 @@ while run:
             maxVelocity *= (tileSize/old)
             accel *= (tileSize/old)
             deAccel *= (tileSize/old)
-            p1.size[0] = int(p1.size[0]*(tileSize/old))
-            p1.size[1] = int(p1.size[1]*(tileSize/old))
+            for player in players:
+                player.size[0] = int(player.size[0]*(tileSize/old))
+                player.size[1] = int(player.size[1]*(tileSize/old))
 
     keys = pg.key.get_pressed()
 
     main()
-# <<<<<<< HEAD
-# =======
-    # network()
     s.send(bytearray([0]))
-    try:
-        # test = s.receive(2048)
-        # print(test)
-        for i in range(len(players)):
-            command = int.from_bytes(s.receive(1), "little")
-            if command == 4:
-                continue
-            header = int.from_bytes(s.receive(1), "little")
-            data = s.receive(header).decode()
-
-            if command == 1:
-                stuff = data.split(",")
-                if stuff[0] not in [i.name for i in players]:
-                    print(f"{stuff[0]} now exists")
-                    players.append(Player(win, int(np.size(grid,1)//2*(tileSize/50)), int(np.size(grid,0)//2*(tileSize/50)), world, stuff[0], (int(stuff[1]), int(stuff[2]), int(stuff[3]))))
-            elif command == 2:
-                stuff = data.split(",")
-                for player in players:
-                    if player.name == stuff[0]:
-                        # player.x, player.y = int(stuff[1]), int(stuff[2])
-                        player.dx, player.dy = float(stuff[3])*.75*(tileSize/50), float(stuff[4])*.75*(tileSize/50)
-                        player.dx += (int(stuff[1])*(tileSize/50)-int(player.x))/2
-                        player.dy += (int(stuff[2])*(tileSize/50)-int(player.y))/2
-            elif command == 3:
-                players = [i for i in players if i.name != data]
-                print(f"{data} left the room :(")
-        # while True:
-        #     print(s.receive(2048))
-    except BlockingIOError:
-        pass
-
-
     msg = str(p1.name)+","+str(int(p1.x*(50/tileSize)))+","+str(int(p1.y*(50/tileSize)))+","+str(int(p1.dx*(50/tileSize)))+","+str(int(p1.dy*(50/tileSize)))
     s.send(bytearray([2, len(msg)]))
     s.send(msg.encode())
-# >>>>>>> 2cafdd8c11fa359ba47003133bb52e61c93e5142
+    # print(f"sent {msg}")
 
 pg.quit()
