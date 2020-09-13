@@ -19,11 +19,6 @@ class Connect:
         data = self.s.recv(amount)
         return data
 
-win = pg.display.set_mode(size=(1280,720),flags=(pg.DOUBLEBUF | pg.RESIZABLE))
-win.set_alpha(None)
-
-pg.font.init()
-
 class World:
     def __init__(self):
         self.x = 0
@@ -138,6 +133,18 @@ def network():
             print(f"[ERR] {e}")
             return
 
+def menuScreen():
+    win.fill((0,0,0))
+
+    mx, my = pg.mouse.get_pos()
+    sx, sy = pg.display.get_surface().get_size()
+
+    # exit button
+    exitLabel = menuFont.render("Exit", True, (255,255,255))
+    exitLabel_rect = exitLabel.get_rect()
+    pg.draw.rect(win, (120,120,120), (sx//2-50, sy//2-25, 100,50))
+    win.blit(exitLabel, (sx//2-50, sy//2-25))
+
 def main():
     win.fill((0,0,0))
 
@@ -219,15 +226,18 @@ def main():
     for player in players:
         player.update()
 
-    pg.display.update()
-    clock.tick(60)
-    # print(clock.get_fps())
-
 def distance(p1,p2):
     dx = abs(p2[0]-p1[0])
     dy = abs(p2[1]-p1[1])
     d = (dx**2+dy**2)**(1/2)
     return d
+
+win = pg.display.set_mode(size=(1280,720),flags=(pg.DOUBLEBUF | pg.RESIZABLE))
+win.set_alpha(None)
+
+pg.font.init()
+
+menuFont = pg.font.SysFont("Arial", 48)
 
 world = World()
 
@@ -308,8 +318,15 @@ while run:
 
     keys = pg.key.get_pressed()
 
+    # menu screen
+    menuScreen()
+
     # in game
-    main()
+    # main()
+
+    pg.display.update()
+    clock.tick(60)
+    # print(clock.get_fps())
 
     # send position
     if doSocket:
