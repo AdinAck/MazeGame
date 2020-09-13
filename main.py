@@ -4,6 +4,7 @@ import socket
 import random
 from PIL import Image
 import numpy as np
+import pyautogui
 
 class Connect:
     def __init__(self, ip, port):
@@ -125,25 +126,12 @@ def network():
                             player.dy += (int(stuff[2])*(tileSize/50)-int(player.y))/2
                 elif command == 3:
                     players = [i for i in players if i.name != data]
-                    print(f"{data} left the room :(")
             # while True:
             #     print(s.receive(2048))
 
         except Exception as e:
             print(f"[ERR] {e}")
             return
-
-def menuScreen():
-    win.fill((0,0,0))
-
-    mx, my = pg.mouse.get_pos()
-    sx, sy = pg.display.get_surface().get_size()
-
-    # exit button
-    exitLabel = menuFont.render("Exit", True, (255,255,255))
-    exitLabel_rect = exitLabel.get_rect()
-    pg.draw.rect(win, (120,120,120), (sx//2-50, sy//2-25, 100,50))
-    win.blit(exitLabel, (sx//2-50, sy//2-25))
 
 def main():
     win.fill((0,0,0))
@@ -232,6 +220,19 @@ def distance(p1,p2):
     d = (dx**2+dy**2)**(1/2)
     return d
 
+user = pyautogui.prompt(text='Username:', title='')
+d = pyautogui.confirm(text='', title='', buttons=['Join room', 'Host room'])
+if d == 'Join room':
+    ip = pyautogui.prompt(text='IP:', title='')
+    port = int(pyautogui.prompt(text='PORT:', title=''))
+elif d == 'Host room':
+    ip = 'localhost'
+    port = int(pyautogui.prompt(text='PORT:', title=''))
+    from server import Server
+    threading.Thread(target=Server, args=[port]).start()
+else:
+    exit()
+
 win = pg.display.set_mode(size=(1280,720),flags=(pg.DOUBLEBUF | pg.RESIZABLE))
 win.set_alpha(None)
 
@@ -265,7 +266,7 @@ for x in range(10):
                     luminocity[x,y,i,j,k] = min(1,max(0,(lightSpread-d/10)*lightIntensity))
 
 # load asetts
-wall1 = pg.image.load("wall1.png").convert()
+# wall1 = pg.image.load("wall1.png").convert()
 
 im = Image.open("map1.png")
 grid = np.array(im, dtype=float)
@@ -279,13 +280,14 @@ colors = grid.copy()
 side = np.zeros((np.size(grid,0), np.size(grid, 1)))
 
 # create player
-user = "Adin"
+# user = "Adin"
 p1 = Player(win, np.size(grid,0)*tileSize//2, np.size(grid, 1)*tileSize//2, world, user)
 players = [p1]
 
 # connect to server
 print("Joining room...")
-s = Connect('adin.christianminecraftserver.net', 8082)
+print([user,ip,port])
+s = Connect(ip, port)
 print("Connected!")
 
 # tell server the username and color
@@ -318,11 +320,8 @@ while run:
 
     keys = pg.key.get_pressed()
 
-    # menu screen
-    menuScreen()
-
     # in game
-    # main()
+    main()
 
     pg.display.update()
     clock.tick(60)

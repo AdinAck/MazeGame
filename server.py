@@ -9,9 +9,9 @@ class Player:
         self.dx, self.dy = 0, 0
 
 class Server:
-    def __init__(self):
+    def __init__(self, port):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.bind(('', 8082))
+        self.s.bind(('', port))
         self.s.listen()
 
         self.players = []
@@ -92,4 +92,4 @@ class Server:
             return
 
 if __name__ == "__main__":
-    Server()
+    Server(8082)
