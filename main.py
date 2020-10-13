@@ -281,7 +281,7 @@ side = np.zeros((np.size(grid,0), np.size(grid, 1)))
 
 # create player
 # user = "Adin"
-p1 = Player(win, (np.size(grid,0)+2)*tileSize//2, (np.size(grid, 1)+2)*tileSize//2, world, user)
+p1 = Player(win, (np.size(grid,0)+1)*tileSize//2, (np.size(grid, 1)+1)*tileSize//2, world, user)
 players = [p1]
 
 # connect to server
