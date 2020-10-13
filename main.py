@@ -268,7 +268,7 @@ for x in range(10):
 # load asetts
 # wall1 = pg.image.load("wall1.png").convert()
 
-im = Image.open("map1.png")
+im = Image.open("mapTest.png")
 grid = np.array(im, dtype=float)
 grid = grid[:,:,0:3]
 n = np.zeros((np.size(grid,0)+renderDistance, np.size(grid,1)+renderDistance, 3))
@@ -281,7 +281,7 @@ side = np.zeros((np.size(grid,0), np.size(grid, 1)))
 
 # create player
 # user = "Adin"
-p1 = Player(win, np.size(grid,0)*tileSize//2, np.size(grid, 1)*tileSize//2, world, user)
+p1 = Player(win, (np.size(grid,0)+2)*tileSize//2, (np.size(grid, 1)+2)*tileSize//2, world, user)
 players = [p1]
 
 # connect to server
