@@ -86,8 +86,8 @@ class Player:
             self.x += int(self.dx)
             self.y += int(self.dy)
 
-        #self.x = int(self.x+self.dx)
-        #self.y = int(self.y+self.dy)
+        # self.x = int(self.x+self.dx)
+        # self.y = int(self.y+self.dy)
         win.blit(self.label, (self.x+world.x+(tileSize//10)-self.label_rect.width //
                  2, self.y+world.y-(tileSize//2)-self.label_rect.height//2))
         self.rect = pg.draw.rect(
@@ -142,20 +142,23 @@ def network():
                 elif command == 5:
                     recieved = ""
                     while True:
+                        print("attempting ")
                         recieved += data
                         command = int.from_bytes(s.receive(1), "little")
                         if command == 6:
+                            print("ending")
                             header = int.from_bytes(s.receive(1), "little")
                             break
                         header = int.from_bytes(s.receive(1), "little")
                         data = s.receive(header).decode()
-                    # print(recieved)
+                    print("recieved")
 
-                    grid = recieved.split("\\")
+                    grid = recieved.split("a")
                     for i in range(len(grid)):
-                        grid[i] = [[float(x) for x in ss.split(',')]
-                                   for ss in grid[i].split('|')]
+                        grid[i] = [[float(x) for x in ss.split('c')]
+                                   for ss in grid[i].split('b')]
                     grid = np.array(grid)
+                    print("splitted")
             # while True:
             #     print(s.receive(2048))
 
@@ -223,13 +226,19 @@ def main():
     # render tiles
     colors = grid.copy()
     lumApply = np.zeros((np.size(grid, 0), np.size(grid, 1), 3))
+    # print(np.size(lumApply, 0), np.size(lumApply, 1),
+    # np.size(colors, 0), np.size(colors, 1))
     for player in players:
+        # print(player.x, player.y)
         slice1 = max(0, player.y//tileSize-renderDistance //
                      2), min(np.size(grid, 0), player.y//tileSize+renderDistance//2)
         slice2 = max(0, player.x//tileSize-renderDistance //
                      2), min(np.size(grid, 1), player.x//tileSize+renderDistance//2)
         try:
-            lumApply[slice1[0]:slice1[1], slice2[0]:slice2[1]] += luminocity[player.y % tileSize // (tileSize//10), player.x % tileSize // (
+            # print(np.size(lumApply[slice1[0]:slice1[1], slice2[0]:slice2[1]]))
+            # print(np.size(luminocity[player.y % tileSize // (tileSize//10), player.x % tileSize // (
+            # tileSize//10)]*(luminocity[player.y % tileSize // (tileSize//10), player.x % tileSize // (tileSize//10)]+np.asarray(player.color)/255)/2))
+            lumApply[slice1[0]: slice1[1], slice2[0]: slice2[1]] += luminocity[player.y % tileSize // (tileSize//10), player.x % tileSize // (
                 tileSize//10)]*(luminocity[player.y % tileSize // (tileSize//10), player.x % tileSize // (tileSize//10)]+np.asarray(player.color)/255)/2
         except Exception as e:
             print(e)
@@ -237,10 +246,10 @@ def main():
                  2), min(np.size(grid, 0), p1.y//tileSize+renderDistance//2)
     slice2 = max(0, p1.x//tileSize-renderDistance //
                  2), min(np.size(grid, 1), p1.x//tileSize+renderDistance//2)
-    colors[slice1[0]:slice1[1], slice2[0]:slice2[1]
-           ] *= lumApply[slice1[0]:slice1[1], slice2[0]:slice2[1]]
-    colors[slice1[0]:slice1[1], slice2[0]:slice2[1]] = np.minimum(np.ones(
-        colors[slice1[0]:slice1[1], slice2[0]:slice2[1]].shape)*255, colors[slice1[0]:slice1[1], slice2[0]:slice2[1]])
+    colors[slice1[0]: slice1[1], slice2[0]: slice2[1]
+           ] *= lumApply[slice1[0]: slice1[1], slice2[0]: slice2[1]]
+    colors[slice1[0]: slice1[1], slice2[0]: slice2[1]] = np.minimum(np.ones(
+        colors[slice1[0]: slice1[1], slice2[0]: slice2[1]].shape)*255, colors[slice1[0]: slice1[1], slice2[0]: slice2[1]])
 
     for i in range(max(0, p1.x//tileSize-renderDistance//2), min(np.size(grid, 1), p1.x//tileSize+renderDistance//2)):
         for j in range(max(0, p1.y//tileSize-renderDistance//2), min(np.size(grid, 0), p1.y//tileSize+renderDistance//2)):
@@ -294,11 +303,11 @@ generateMap()
 im = Image.open("mapTest.png")
 grid = np.array(im, dtype=float)
 
-grid = grid[:, :, 0:3]
+grid = grid[:, :, 0: 3]
 n = np.zeros((np.size(grid, 0)+renderDistance,
-             np.size(grid, 1)+renderDistance, 3))
-n[renderDistance//2:renderDistance//2+grid.shape[0],
-    renderDistance//2:renderDistance//2+grid.shape[1]] = grid
+              np.size(grid, 1)+renderDistance, 3))
+n[renderDistance//2: renderDistance//2+grid.shape[0],
+    renderDistance//2: renderDistance//2+grid.shape[1]] = grid
 grid = n.copy()
 colors = grid.copy()
 
@@ -336,7 +345,7 @@ for x in range(10):
         for i in range(renderDistance):
             for j in range(renderDistance):
                 d = distance((i*tileSize+tileSize, j*tileSize+tileSize), (renderDistance//2 *
-                             tileSize+5*(x+(tileSize//10)), renderDistance//2*tileSize+5*(y+(tileSize//10))))
+                                                                          tileSize+5*(x+(tileSize//10)), renderDistance//2*tileSize+5*(y+(tileSize//10))))
                 for k in range(3):
                     luminocity[x, y, i, j, k] = min(
                         1, max(0, (lightSpread-d/10)*lightIntensity))
@@ -409,7 +418,7 @@ while run:
     main()
 
     pg.display.update()
-    clock.tick(60)
+    clock.tick(20)
     # print(clock.get_fps())
 
     # send position

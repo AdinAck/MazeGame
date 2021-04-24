@@ -36,19 +36,19 @@ class Server:
     def sendGrid(self, player):
         msg = ""
         for i in range(len(self.grid)):
-            msg += "\\" if (i != len(self.grid) and i != 0) else ""
+            msg += "a" if (i != len(self.grid) and i != 0) else ""
             for j in range(len(self.grid[0])):
-                msg += "|" if (j != len(self.grid[0]) and j != 0) else ""
+                msg += "b" if (j != len(self.grid[0]) and j != 0) else ""
                 for k in range(len(self.grid[0, 0])):
                     msg += str(int(self.grid[i, j, k]))
-                    msg += "," if (k != len(self.grid[0, 0])-1) else ""
+                    msg += "c" if (k != len(self.grid[0, 0])-1) else ""
         # msg = msg[0:256]
         splitmsg = [msg[i:i+255] for i in range(0, len(msg), 255)]
         # print(splitmsg)
         counter = 1
         for i in splitmsg:
             counter += 1
-            # print("sending: "+str(counter)+"  "+i)
+            print("sending: "+str(counter)+"  "+str(i.encode()))
             player.sock.send(bytearray([5, len(i)]))
             player.sock.send(i.encode())
         player.sock.send(bytearray([6, 4]))
