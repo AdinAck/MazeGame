@@ -1,129 +1,92 @@
+from __future__ import annotations
+import sys
 import threading
 import socket
-import select
+from typing import *
 
 
-class Player:
-    def __init__(self, sock, addr, name="UNKNOWN"):
-        self.sock, self.addr, self.name = sock, addr, name
-        self.x, self.y = 0, 0
-        self.dx, self.dy = 0, 0
+class ClientHandle:
+    def __init__(self, server: Server, sock: socket.socket, addr: Tuple[str, int], ID: int):
+        self.server = server
+        self.sock, self.addr = sock, addr
+        self.sock.settimeout(10)
+
+        self.lock = threading.Lock()
+        self.frameReady = threading.Semaphore(0)
+
+        self.ID = ID
+
+    def main(self):
+        try:
+            while True:
+                # Receive command
+                command = int.from_bytes(self.sock.recv(2), 'big')
+
+                self.frameReady.acquire(False)
+                self.frameReady.acquire()
+
+                if command == self.server.commandDict['no-op']:
+                    continue
+
+                elif command == self.server.commandDict['update-coords']:
+
+                    continue
+                elif command == self.server.commandDict['request-coords']:
+
+                    continue
+                elif command == self.server.commandDict['remove-player']:
+
+                    continue
+                elif command == self.server.commandDict['new-player']:
+
+                    continue
+                elif command == self.server.commandDict['send-grid']:
+
+                    continue
+        except:
+            pass
 
 
 class Server:
-    def __init__(self, port, grid):
+    def __init__(self, PORT: int):
+        print("Server starting...")
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.bind(('', port))
+        self.s.bind(('', PORT))
         self.s.listen()
-        self.grid = grid
-        self.players = []
+        self.futureIDs: List[int] = []
+        print(f'Listenning on port {PORT}.')
 
+        self.commandDict: Dict[str, int] = {
+            'new-player': 0x10,
+            'update-coords': 0x20,
+            'request-coords': 0x21,
+            'remove-player': 0x30,
+            'send-grid': 0x40,
+            'no-op': 0xFFFF
+        }
+
+        self.gameState: Dict[str, Any] = {
+            'player-coords': {},
+            'grid': None
+        }
+
+        self.clients: Dict[Tuple[str, int], ClientHandle] = {}
+
+    def main(self):
         while True:
-            clientsocket, address = self.s.accept()
-            print(f"[INFO] Connection from {address} has been established.")
-            self.players.append(Player(clientsocket, address))
-            threading.Thread(target=self.client, args=[
-                             self.players[-1]]).start()
+            cs, addr = self.s.accept()
+            print(f'[INFO] Connection from {addr} has been established.')
+            self.clients[addr] = ClientHandle(self, cs, addr, self.newID())
+            threading.Thread(
+                target=self.clients[addr].main,
+                daemon=True
+            ).start()
 
-    def sendCoords(self, player):
-        for p in [i for i in self.players if i != player and i.name != "UNKNOWN"]:
-            msg = str(p.name)+","+str(p.x)+"," + \
-                str(p.y)+","+str(p.dx)+","+str(p.dy)
-            player.sock.send(bytearray([2, len(msg)]))
-            player.sock.send(msg.encode())
-            # print(f"sent {msg.encode()} to {player.name}")
+    def removeClient(self, client: ClientHandle):
+        sys.stdout.flush()
+        # Terminate client thread
+        client.sock.close()
+        del self.clients[client.addr]
 
-    def sendGrid(self, player):
-        msg = ""
-        for i in range(len(self.grid)):
-            msg += "a" if (i != len(self.grid) and i != 0) else ""
-            for j in range(len(self.grid[0])):
-                msg += "b" if (j != len(self.grid[0]) and j != 0) else ""
-                for k in range(len(self.grid[0, 0])):
-                    msg += str(int(self.grid[i, j, k]))
-                    msg += "c" if (k != len(self.grid[0, 0])-1) else ""
-        # msg = msg[0:256]
-        splitmsg = [msg[i:i+255] for i in range(0, len(msg), 255)]
-        # print(splitmsg)
-        counter = 1
-        for i in splitmsg:
-            counter += 1
-            print("sending: "+str(counter)+"  "+str(i.encode()))
-            player.sock.send(bytearray([5, len(i)]))
-            player.sock.send(i.encode())
-        player.sock.send(bytearray([6, 4]))
-        player.sock.send(("done").encode())
-
-    def recvCoords(self, player, data):
-        stuff = data.split(",")
-        player.x, player.y = stuff[1], stuff[2]
-        player.dx, player.dy = stuff[3], stuff[4]
-
-    def initialize(self, player, data):
-        if player.name == "UNKNOWN":
-            stuff = data.split(",")
-            # if stuff[0] in [i.name for i in self.players]:
-            #     print(f"[WARN] {player.addr} username already taken.")
-            #     player.sock.send(bytearray([6]))
-            #     continue
-            player.name = stuff[0]
-            player.color = int(stuff[1]), int(stuff[2]), int(stuff[3])
-            print(
-                f"[INFO] {player.addr} initialized. Name is {player.name}, color is {player.color}")
-            for p in [i for i in self.players if i != player]:
-                msg = p.name+","+str(p.color[0])+"," + \
-                    str(p.color[1])+","+str(p.color[2])
-                player.sock.send(bytearray([1, len(msg)]))
-                player.sock.send(msg.encode())
-                # print(f"told {player.name} that {p.name} exists")
-                msg = player.name+"," + \
-                    str(player.color[0])+"," + \
-                    str(player.color[1])+","+str(player.color[2])
-                p.sock.send(bytearray([1, len(msg)]))
-                p.sock.send(msg.encode())
-                # print(f"told {p.name} that {player.name} exists")
-            self.sendGrid(player)
-
-    def client(self, player):
-        while True:
-            try:
-                command = int.from_bytes(player.sock.recv(1), "little")
-                if command == 0:
-                    threading.Thread(target=self.sendCoords,
-                                     args=[player]).start()
-                    continue
-                header = int.from_bytes(player.sock.recv(1), "little")
-                data = player.sock.recv(header).decode()
-                if command == 4:
-                    threading.Thread(target=self.initialize,
-                                     args=[player, data]).start()
-                elif command == 2:  # player sends coordinates
-                    threading.Thread(target=self.recvCoords,
-                                     args=[player, data]).start()
-            except ConnectionResetError:
-                threading.Thread(target=self.inform, args=[player]).start()
-                return
-            except IndexError:
-                print(f"[WARN] Received bad packets from {player.name}.")
-            except Exception as e:
-                print(f"[ERR] [{player.addr}] {e}")
-                self.players.remove(player)
-                return
-
-    def inform(self, player):
-        try:
-            self.players.remove(player)
-            print(f"[INFO] {player.name} has left.")
-            player.sock.close()
-            for p in [i for i in self.players if i != player]:
-                try:
-                    p.sock.send(bytearray([3, len(player.name)]))
-                    p.sock.send(player.name.encode())
-                except ConnectionResetError:
-                    self.inform(p)
-        except ValueError:
-            return
-
-
-if __name__ == "__main__":
-    Server(8082, [])
+    def newID(self):
+        return len(self.clients) if not len(self.futureIDs) else self.futureIds.pop()
