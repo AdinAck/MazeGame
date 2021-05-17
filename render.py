@@ -7,7 +7,7 @@ import random
 from PIL import Image
 import numpy as np
 import pyautogui
-from mapMaker import MapMaker
+# from mapMaker import MapMaker
 import random as r
 from server import Server
 from typing import *
@@ -107,7 +107,7 @@ class Renderer:
         lightIntensity = .02
 
         # create map
-        generateMap()
+        # generateMap()
 
         # make grid
         im = Image.open("map1.png")
@@ -148,12 +148,6 @@ class Renderer:
         # collision arr
         side = np.zeros((np.size(grid, 0), np.size(grid, 1)))
 
-        # create player
-        # user = "Adin"
-        p1 = Player(win, (np.size(grid, 0)+1)*tileSize//2,
-                    (np.size(grid, 1)+1)*tileSize//2, world, user)
-        self.players[p1.name] = p1
-
         # begin thread
         user = pyautogui.prompt(text='Username:', title='')
         if user == "test":
@@ -182,7 +176,13 @@ class Renderer:
             else:
                 exit()
 
-        self.client.connect(ip, port)
+        # create player
+        # user = "Adin"
+        p1 = Player(win, (np.size(grid, 0)+1)*tileSize//2,
+                    (np.size(grid, 1)+1)*tileSize//2, world, user)
+        self.players[p1.name] = p1
+
+        self.client.connect(ip, port, self.players)
         self.client.initialize(p1.x, p1.y, p1.name, p1.color)
 
         # tell server the username and color

@@ -2,7 +2,6 @@ from threading import Thread, Lock, Condition
 import socket
 from queue import Queue
 from commandDict import commandDict
-from render import Player, win, world
 from typing import *
 
 
@@ -25,7 +24,9 @@ class Client:
 
         self.toSend = Queue()
 
-    def connect(self, ip, port, players: Dict[str, Player]):
+    def connect(self, ip, port, players):
+        global Player, win, world
+        from render import Player, win, world
         self.players = players
         try:
             self.s.connect((ip, port))
@@ -46,7 +47,7 @@ class Client:
 
     def initialize(self, x: int, y: int, name: str, color: Tuple[int, int, int]):
         self.send('new-player', data=name.encode())
-        self.send(intToShort(x)+intToShort(y), header=False)
+        self.send(data=intToShort(x)+intToShort(y), header=False)
         self.send(data=bytearray(color), header=False)
 
     def __readExactly(self, size: int) -> bytearray:
