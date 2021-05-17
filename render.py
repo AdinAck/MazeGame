@@ -1,3 +1,5 @@
+# type:ignore
+
 import pygame as pg
 import threading
 import socket
@@ -8,6 +10,8 @@ import pyautogui
 from mapMaker import MapMaker
 import random as r
 from server import Server
+from client import intToShort
+from typing import *
 
 
 class World:
@@ -88,10 +92,11 @@ class Player:
 class Renderer:
     def __init__(self, client):
         self.client = client
+        self.players: Dict[str, Player] = {}
 
     def main(self):
         # variables
-        global tileSize, players, s, old, win, keys, p1, maxVelocity, accel, deAccel, wallBounce, renderDistance, collisionDistance, lightSpread, lightIntensity, world, grid, colors, user, d, luminocity
+        global tileSize, s, old, win, keys, p1, maxVelocity, accel, deAccel, wallBounce, renderDistance, collisionDistance, lightSpread, lightIntensity, world, grid, colors, user, d, luminocity
         tileSize = 50
         maxVelocity = 8
         accel = .6
@@ -106,7 +111,7 @@ class Renderer:
         generateMap()
 
         # make grid
-        im = Image.open("mapTest.png")
+        im = Image.open("map1.png")
         grid = np.array(im, dtype=float)
 
         grid = grid[:, :, 0: 3]
@@ -116,33 +121,6 @@ class Renderer:
             renderDistance//2: renderDistance//2+grid.shape[1]] = grid
         grid = n.copy()
         colors = grid.copy()
-
-        # begin thread
-        user = pyautogui.prompt(text='Username:', title='')
-        if user == "test":
-            ip = 'localhost'
-            port = 1234
-            s = Server(port)
-            threading.Thread(
-                target=s.main,
-                daemon=True
-            ).start()
-        else:
-            d = pyautogui.confirm(text='', title='', buttons=[
-                'Join room', 'Host room'])
-            if d == 'Join room':
-                ip = pyautogui.prompt(text='IP:', title='')
-                port = int(pyautogui.prompt(text='PORT:', title=''))
-            elif d == 'Host room':
-                ip = 'localhost'
-                port = int(pyautogui.prompt(text='PORT:', title=''))
-                s = Server(port)
-                threading.Thread(
-                    target=s.main,
-                    daemon=True
-                ).start()
-            else:
-                exit()
 
         win = pg.display.set_mode(
             size=(1280, 720), flags=(pg.DOUBLEBUF | pg.RESIZABLE))
@@ -175,7 +153,38 @@ class Renderer:
         # user = "Adin"
         p1 = Player(win, (np.size(grid, 0)+1)*tileSize//2,
                     (np.size(grid, 1)+1)*tileSize//2, world, user)
-        players = [p1]
+        self.players[p1.name] = p1
+
+        # begin thread
+        user = pyautogui.prompt(text='Username:', title='')
+        if user == "test":
+            ip = 'localhost'
+            port = 1234
+            s = Server(port)
+            threading.Thread(
+                target=s.main,
+                daemon=True
+            ).start()
+        else:
+            d = pyautogui.confirm(text='', title='', buttons=[
+                'Join room', 'Host room'])
+            if d == 'Join room':
+                ip = pyautogui.prompt(text='IP:', title='')
+                port = int(pyautogui.prompt(text='PORT:', title=''))
+
+            elif d == 'Host room':
+                ip = 'localhost'
+                port = int(pyautogui.prompt(text='PORT:', title=''))
+                s = Server(port)
+                threading.Thread(
+                    target=s.main,
+                    daemon=True
+                ).start()
+            else:
+                exit()
+
+        self.client.connect(ip, port)
+        self.client.initialize(p1.x, p1.y, p1.name, p1.color)
 
         # tell server the username and color
 
@@ -197,7 +206,7 @@ class Renderer:
                     maxVelocity *= (tileSize/old)
                     accel *= (tileSize/old)
                     deAccel *= (tileSize/old)
-                    for player in players:
+                    for player in self.players.values():
                         player.newScreenSize()
 
             keys = pg.key.get_pressed()
@@ -235,7 +244,7 @@ class Renderer:
             # render tiles
             colors = grid.copy()
             lumApply = np.zeros((np.size(grid, 0), np.size(grid, 1), 3))
-            for player in players:
+            for player in self.players.values():
                 slice1 = max(0, player.y//tileSize-renderDistance //
                              2), min(np.size(grid, 0), player.y//tileSize+renderDistance//2)
                 slice2 = max(0, player.x//tileSize-renderDistance //
@@ -263,27 +272,21 @@ class Renderer:
                         world.x+i*tileSize, world.y+j*tileSize, tileSize, tileSize))
                     # win.blit(wall1, (world.x+i*tileSize,world.y+j*tileSize))
 
-            for player in players:
+            for player in self.players.values():
                 player.update()
+
+            # send position
+            self.client.toSend.put(
+                ('update-coords', intToShort(p1.x)+intToShort(p1.y), header=False))
+
+            # release client sender
+            with self.client.condition:
+                self.client.condition.notify()
 
             pg.display.update()
             clock.tick(60)
             # print(clock.get_fps())
 
-            # send position
-            if doSocket:
-                try:
-                    s.send(bytearray([0]))
-                    msg = str(p1.name)+","+str(int(p1.x*(50/tileSize)))+","+str(int(p1.y*(50/tileSize))
-                                                                                )+","+str(int(p1.dx*(50/tileSize)))+","+str(int(p1.dy*(50/tileSize)))
-                    s.send(bytearray([2, len(msg)]))
-                    s.send(msg.encode())
-                except ConnectionResetError as e:
-                    print(f"[ERR] {e}")
-                    print("Closing socket.")
-                    s.s.close()
-                    doSocket = False
-            # print(f"sent {msg}")
         pg.quit()
 
 

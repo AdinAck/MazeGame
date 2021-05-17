@@ -33,7 +33,7 @@ class World:
 
     def update(self, player):
         self.x = -int(player.x)+pg.display.get_surface().get_size()[0]//2
-        self.y = -int(player.y)+pg.display.get_surface().get_size()[1]//2
+        self.y = -int(player.y)+pg.displary.get_surface().get_size()[1]//2
 
 
 class Player:
