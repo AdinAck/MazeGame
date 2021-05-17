@@ -1,4 +1,3 @@
-import png
 from PIL import Image
 import numpy as np
 import random as r
@@ -7,15 +6,6 @@ import random as r
 class MapMaker:
     def __init__(self):
         print("making mapMaker")
-
-    def testMethod(self):
-        s = [[1, 2, 1], [1, 2, 1], [0, 1, 0]]
-        palette = [(0x55, 0x55, 0x55), (0xff, 0x99, 0x99), (0xf4, 0x92, 0x11)]
-        w = png.Writer(len(s[0]), len(s), palette=palette, bitdepth=2)
-
-        f = open('mapTest.png', 'wb')
-        w.write(f, s)
-        f.close()
 
     def makePNG(self, map):
         array = np.zeros((np.size(map, 0), np.size(map, 1), 3))
