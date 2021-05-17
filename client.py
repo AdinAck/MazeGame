@@ -109,7 +109,7 @@ class Client:
                 self.condition.wait()
 
             while not self.toSend.empty():
-                self.send(*self.toSend.get())
+                self.send(*self.toSend.get()[0], **self.toSend.get()[1])
 
     def send(self, command='', data: Optional[Union[bytes, bytearray]] = None, header=True) -> None:
         if command != '':

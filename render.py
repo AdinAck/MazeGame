@@ -10,7 +10,6 @@ import pyautogui
 from mapMaker import MapMaker
 import random as r
 from server import Server
-from client import intToShort
 from typing import *
 
 
@@ -277,7 +276,7 @@ class Renderer:
 
             # send position
             self.client.toSend.put(
-                ('update-coords', intToShort(p1.x)+intToShort(p1.y), header=False))
+                (('update-coords', intToShort(p1.x)+intToShort(p1.y)), {'header': False}))
 
             # release client sender
             with self.client.condition:
@@ -308,3 +307,11 @@ def generateMap():
         mm.removeRandomWall(mainGrid, r.randint(
             0, defaultWidth-1), r.randint(0, defaultHeight-1))
     mm.makePNG(mm.drawGrid(mainGrid, defaultScale))
+
+
+def intToShort(x: int) -> Union[bytes, bytearray]:
+    return int.to_bytes(x, 2, 'big')
+
+
+def shortToInt(x: Union[bytes, bytearray]) -> int:
+    return int.from_bytes(x, 'big')
