@@ -52,10 +52,12 @@ class ClientHandle:
                     self.player.x = shortToInt(self.sock.recv(2))
                     self.player.y = shortToInt(self.sock.recv(2))
                     for client in (client for client in self.server.clients.values() if client != self):
-                        client.send('update-coords', self.player.name.encode())
-                        coords = intToShort(self.player.x) + \
-                            intToShort(self.player.y)
-                        client.send(data=coords, header=False)
+                        client.send('update-coords',
+                                    data=self.player.name.encode())
+                        client.send(data=intToShort(
+                            self.player.x), header=False)
+                        client.send(data=intToShort(
+                            self.player.y), header=False)
 
                 elif command == commandDict['remove-player']:
 
@@ -69,14 +71,26 @@ class ClientHandle:
                                          shortToInt(self.sock.recv(1)),
                                          shortToInt(self.sock.recv(1))
                                          )
-
+                    print(self.server.clients.values())
                     for client in (client for client in self.server.clients.values() if client != self):
                         client.send(
                             'new-player', data=self.player.name.encode())
-                        client.send(intToShort(self.player.x) +
-                                    intToShort(self.player.y), header=False)
+
+                        client.send(data=intToShort(
+                            self.player.x), header=False)
+                        client.send(data=intToShort(
+                            self.player.y), header=False)
                         client.send(data=bytearray(
                             self.player.color), header=False)
+
+                        self.send(
+                            'new-player', data=client.player.name.encode())
+                        self.send(data=intToShort(
+                            client.player.x), header=False)
+                        self.send(data=intToShort(
+                            client.player.y), header=False)
+                        self.send(data=bytearray(
+                            client.player.color), header=False)
 
                 elif command == commandDict['send-grid']:
 

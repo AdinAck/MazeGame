@@ -52,6 +52,7 @@ class Player:
         self.size[1] = int(self.size[1]*(tileSize/old))
 
     def update(self):
+        # print("updating "+self.name)
         if self.name == user:
             changeX = 0
             if self.dx != 0:
@@ -158,6 +159,9 @@ class Renderer:
                 target=s.main,
                 daemon=True
             ).start()
+        elif user == "g":
+            ip = 'localhost'
+            port = 1234
         else:
             d = pyautogui.confirm(text='', title='', buttons=[
                 'Join room', 'Host room'])
@@ -243,16 +247,16 @@ class Renderer:
             # render tiles
             colors = grid.copy()
             lumApply = np.zeros((np.size(grid, 0), np.size(grid, 1), 3))
-            for player in self.players.values():
-                slice1 = max(0, player.y//tileSize-renderDistance //
-                             2), min(np.size(grid, 0), player.y//tileSize+renderDistance//2)
-                slice2 = max(0, player.x//tileSize-renderDistance //
-                             2), min(np.size(grid, 1), player.x//tileSize+renderDistance//2)
-                try:
+            try:
+                for player in self.players.values():
+                    slice1 = max(0, player.y//tileSize-renderDistance //
+                                 2), min(np.size(grid, 0), player.y//tileSize+renderDistance//2)
+                    slice2 = max(0, player.x//tileSize-renderDistance //
+                                 2), min(np.size(grid, 1), player.x//tileSize+renderDistance//2)
                     lumApply[slice1[0]: slice1[1], slice2[0]: slice2[1]] += luminocity[player.y % tileSize // (tileSize//10), player.x % tileSize // (
                         tileSize//10)]*(luminocity[player.y % tileSize // (tileSize//10), player.x % tileSize // (tileSize//10)]+np.asarray(player.color)/255)/2
-                except Exception as e:
-                    print(e)
+            except Exception as e:
+                print(e)
             slice1 = max(0, p1.y//tileSize-renderDistance //
                          2), min(np.size(grid, 0), p1.y//tileSize+renderDistance//2)
             slice2 = max(0, p1.x//tileSize-renderDistance //
@@ -270,7 +274,7 @@ class Renderer:
                     pg.draw.rect(win, (colors[j, i, 0], colors[j, i, 1], colors[j, i, 2]), (
                         world.x+i*tileSize, world.y+j*tileSize, tileSize, tileSize))
                     # win.blit(wall1, (world.x+i*tileSize,world.y+j*tileSize))
-
+            # print(len(self.players))
             for player in self.players.values():
                 player.update()
 
