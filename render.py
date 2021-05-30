@@ -96,7 +96,9 @@ class Renderer:
 
     def main(self):
         # variables
-        global tileSize, s, old, win, keys, p1, maxVelocity, accel, deAccel, wallBounce, renderDistance, collisionDistance, lightSpread, lightIntensity, world, grid, colors, user, d, luminocity
+        global scale, tileSize, s, old, win, keys, p1, maxVelocity, accel, deAccel, wallBounce, renderDistance, collisionDistance, lightSpread, lightIntensity, world, grid, colors, user, d, luminocity
+
+        scale = 1
         tileSize = 50
         maxVelocity = 8
         accel = .6
@@ -186,10 +188,8 @@ class Renderer:
                     (np.size(grid, 1)+1)*tileSize//2, world, user)
         self.players[p1.name] = p1
 
-        self.client.connect(ip, port, self.players)
+        self.client.connect(ip, port, self.players, scale)
         self.client.initialize(p1.x, p1.y, p1.name, p1.color)
-
-        # tell server the username and color
 
         # main pygame loop
         clock = pg.time.Clock()
@@ -204,12 +204,14 @@ class Renderer:
                         size=(event.w, event.h), flags=(pg.DOUBLEBUF | pg.RESIZABLE))
                     old = tileSize
                     tileSize = event.w//25
+                    scale *= tileSize/old
                     if tileSize % 10:
                         tileSize -= tileSize % 10
                     maxVelocity *= (tileSize/old)
                     accel *= (tileSize/old)
                     deAccel *= (tileSize/old)
                     for player in self.players.values():
+                        print(player.name)
                         player.newScreenSize()
 
             keys = pg.key.get_pressed()

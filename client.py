@@ -24,10 +24,11 @@ class Client:
 
         self.toSend = Queue()
 
-    def connect(self, ip, port, players):
+    def connect(self, ip, port, players, scale):
         global Player, win, world
         from render import Player, win, world
         self.players = players
+        self.scale = scale
         try:
             self.s.connect((ip, port))
             Thread(
@@ -46,7 +47,7 @@ class Client:
         self.running = True
 
     def initialize(self, x: int, y: int, name: str, color: Tuple[int, int, int]):
-        print("client sending new player info")
+        # print("client sending new player info")
         self.send('new-player', data=name.encode())
         self.send(data=intToShort(x)+intToShort(y), header=False)
         self.send(data=bytearray(color), header=False)
@@ -64,12 +65,12 @@ class Client:
         return self.lastPlayerCoords
 
     def recvForever(self) -> None:
-        print("recvforever started")
+        # print("recvforever started")
         try:
             while True:
                 # Receive command
                 command = shortToInt(self.s.recv(2))
-                print(command)
+                # print(command)
 
                 if command == commandDict['no-op']:
                     continue
@@ -88,7 +89,7 @@ class Client:
                     continue
                 elif command == commandDict['new-player']:
                     # sent by server
-                    print("client will recieve new player info")
+                    # print("client will recieve new player info")
                     header = shortToInt(self.s.recv(2))
                     name = self.__readExactly(header).decode()
                     # print("recieved"+name)
@@ -100,8 +101,9 @@ class Client:
                              shortToInt(self.s.recv(1)),
                              shortToInt(self.s.recv(1))
                              )
-                    print("adding player "+name)
-                    self.players[name] = Player(win, x, y, world, name, color)
+                    # print("adding player "+name)
+                    self.players[name] = Player(
+                        win, x*scale, y*scale, world, name, color)
                 elif command == commandDict['send-grid']:
                     # sent by server
                     continue
